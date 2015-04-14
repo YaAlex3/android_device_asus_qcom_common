@@ -19,9 +19,9 @@
      there before adding to this file. Variables here should be more closely
      related to devices than to networks. -->
 
-<!-- Phone app resources that may need to be customized
-     for different hardware or product builds. -->
 <resources>
+    <!-- Show enabled lte option for lte device -->
+    <bool name="config_enabled_lte" translatable="false">true</bool>
 
     <!-- Flag indicating if network query through TelephonyManager.requestNetworkScan() should be
          disabled.
