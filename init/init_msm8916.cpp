@@ -28,12 +28,12 @@
    IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/sysinfo.h>
-#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/sysinfo.h>
 #define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
 #include <sys/_system_properties.h>
 
@@ -44,41 +44,98 @@
 using android::base::GetProperty;
 using android::init::property_set;
 
-#define RAW_ID_PATH     "/sys/devices/soc0/raw_id"
-#define BUF_SIZE         64
-
-static char tmp[BUF_SIZE];
-static char buff_tmp[BUF_SIZE];
-
 char const *device;
 char const *family;
-char const *product;
 char const *heapstartsize;
 char const *heapgrowthlimit;
 char const *heapsize;
 char const *heapminfree;
+char const *buildnumber;
+char const *builddate;
 
-static int read_file2(const char *fname, char *data, int max_size)
+void check_device()
 {
-    int fd, rc;
+    int PRJ_ID, PRJ_SKU, PRJ_HD;
+    struct sysinfo sys;
+    FILE *fp;
 
-    if (max_size < 1)
-        return 0;
+    fp = fopen("/proc/apid", "r");
+    fscanf(fp, "%d", &PRJ_ID);
+    fclose(fp);
 
-    fd = open(fname, O_RDONLY);
-    if (fd < 0) {
-        ("failed to open '%s'\n", fname);
-        return 0;
+    fp = fopen("/proc/aprf", "r");
+    fscanf(fp, "%d", &PRJ_SKU);
+    fclose(fp);
+
+    fp = fopen("/proc/aphd", "r");
+    fscanf(fp, "%d", &PRJ_HD);
+    fclose(fp);
+
+    sysinfo(&sys);
+
+    if (PRJ_HD == 1) {
+        family = "Z00L";
+        if (PRJ_ID == 0) {
+            if (PRJ_SKU == 3) {
+                device = "Z00W"; // ZE550KG
+                buildnumber = "2179";
+                builddate = "20170803";
+            } else {
+                device = "Z00L"; // ZE550KL
+                buildnumber = "2179";
+                builddate = "20170803";
+            }
+        } else if (PRJ_ID == 1) {
+            device = "Z00M"; // ZE600KL
+            buildnumber = "2171";
+            builddate = "20170719";
+        }
+
+        // from - phone-xhdpi-2048-dalvik-heap.mk
+        heapstartsize = "8m";
+        heapgrowthlimit = "192m";
+        heapsize = "512m";
+        heapminfree = "512k";
+    } else if (PRJ_HD == 0) {
+        family = "Z00T";
+        if (PRJ_ID == 0) {
+            device = "Z00T"; // ZE551KL
+            buildnumber = "2056";
+            builddate = "20170224";
+        } else if (PRJ_ID == 1) {
+            device = "Z011"; // ZE601KL
+            buildnumber = "2170";
+            builddate = "20170719";
+        } else if (PRJ_ID == 2) {
+            device = "Z00C"; // ZX550KL
+            buildnumber = "2056";
+            builddate = "20170224";
+        } else if (PRJ_ID == 3) {
+            device = "Z00U"; // ZD551KL
+            buildnumber = "2214";
+            builddate = "20171110";
+        }
+
+        if (sys.totalram > 2048ull * 1024 * 1024) {
+            // from - phone-xxhdpi-3072-dalvik-heap.mk
+            heapstartsize = "8m";
+            heapgrowthlimit = "288m";
+            heapsize = "768m";
+            heapminfree = "512k";
+        } else if (sys.totalram > 1024ull * 1024 * 1024) {
+            // from - phone-xxhdpi-2048-dalvik-heap.mk
+            heapstartsize = "16m";
+            heapgrowthlimit = "192m";
+            heapsize = "512m";
+            heapminfree = "2m";
+        } else {
+            // from - phone-xhdpi-1024-dalvik-heap.mk
+            heapstartsize = "8m";
+            heapgrowthlimit = "96m";
+            heapsize = "256m";
+            heapminfree = "2m";
+        }
     }
-
-    rc = read(fd, data, max_size - 1);
-    if ((rc > 0) && (rc < max_size))
-        data[rc] = '\0';
-    else
-        data[0] = '\0';
-    close(fd);
-
-    return 1;
 }
 
 static void init_alarm_boot_properties()
@@ -108,6 +165,24 @@ static void init_alarm_boot_properties()
     property_set("ro.alarm_boot", boot_reason == 3 ? "true" : "false");
 }
 
+bool is_target_8916()
+{
+    int fd;
+    int soc_id = -1;
+    char buf[10] = { 0 };
+
+    if (access("/sys/devices/soc0/soc_id", F_OK) == 0)
+        fd = open("/sys/devices/soc0/soc_id", O_RDONLY);
+    else
+        fd = open("/sys/devices/system/soc/soc0/id", O_RDONLY);
+
+    if (fd >= 0 && read(fd, buf, sizeof(buf) - 1) != -1)
+        soc_id = atoi(buf);
+
+    close(fd);
+    return soc_id == 206 || (soc_id >= 247 && soc_id <= 250);
+}
+
 void property_override(char const prop[], char const value[])
 {
     prop_info *pi;
@@ -127,75 +202,40 @@ void property_override_dual(char const system_prop[], char const vendor_prop[], 
 
 void vendor_load_properties()
 {
+    char b_description[PROP_VALUE_MAX], b_fingerprint[PROP_VALUE_MAX];
+    char p_carrier[PROP_VALUE_MAX], p_device[PROP_VALUE_MAX], p_model[PROP_VALUE_MAX];
 
-    char p_device[PROP_VALUE_MAX];
-    unsigned long raw_id = -1;
-    int rc;
+    std::string platform = GetProperty("ro.board.platform", "");
+    if (platform != ANDROID_TARGET)
+        return;
 
-    /* get raw ID */
-    rc = read_file2(RAW_ID_PATH, tmp, sizeof(tmp));
-    if (rc) {
-        raw_id = strtoul(tmp, NULL, 0);
-    }
-
-    /* Z010D  */
-    if (raw_id==1797) {
-
-    /* Device Setting */
-    family = "WW_Phone";
-    device = "Z010D";
-	
     // Init a dummy BT MAC address, will be overwritten later
     property_set("ro.boot.btmacaddr", "00:00:00:00:00:00");
+    check_device();
+    init_alarm_boot_properties();
 
+    sprintf(b_description, "Z00L-user 6.0.1 MMB29P WW_user_21.40.1220.2196_20180308 release-keys", family, buildnumber, builddate);
+    sprintf(b_fingerprint, "asus/WW_Z00L/ASUS_Z00L_63:6.0.1/MMB29P/WW_user_21.40.1220.2196_20180308:user/release-keys", device, device, buildnumber, builddate);
+    sprintf(p_model, "ASUS_%sD", device);
     sprintf(p_device, "ASUS_%s", device);
+    sprintf(p_carrier, "US-ASUS_%s-WW_%s", device, device);
 
+    property_override_dual("ro.build.description", "ro.vendor.description", b_description);
+    property_override("ro.product.carrier", p_carrier);
+    property_override_dual("ro.build.fingerprint", "ro.vendor.build.fingerprint", b_fingerprint);
     property_override_dual("ro.product.device", "ro.vendor.product.device", p_device);
-    property_override_dual("ro.product.model", "ro.vendor.product.model", "ASUS_Z010D");
-    property_override_dual("ro.build.product", "ro.vendor.build.product", "ZC550KL");
+    property_override_dual("ro.product.model", "ro.vendor.product.model", p_model);
 
-    /* Heap Set */
-    property_set("dalvik.vm.heapstartsize", "8m");
-    property_set("dalvik.vm.heapgrowthlimit", "192m");
-    property_set("dalvik.vm.heapsize", "512m");
+    property_set("dalvik.vm.heapstartsize", heapstartsize);
+    property_set("dalvik.vm.heapgrowthlimit", heapgrowthlimit);
+    property_set("dalvik.vm.heapsize", heapsize);
     property_set("dalvik.vm.heaptargetutilization", "0.75");
-    property_set("dalvik.vm.heapminfree", "2m");
+    property_set("dalvik.vm.heapminfree", heapminfree);
     property_set("dalvik.vm.heapmaxfree", "8m");
 
-    /* Display Flicker Fix */
-    property_set("debug.hwui.use_buffer_age", "false");
-    property_set("ro.opengles.version", "196608");
-
-    } else
-
-    /* Z010DD  */
-    if (raw_id==2315) {
-
-    /* Device Setting */
-    family = "WW_Phone";
-    device = "Z010_2";
-
-    sprintf(p_device, "ASUS_%s", device);
-
-    property_override_dual("ro.product.device", "ro.vendor.product.device", p_device);
-    property_override_dual("ro.product.model", "ro.vendor.product.model", "ASUS_Z010DD");
-    property_override_dual("ro.build.product", "ro.vendor.build.product", "ZC550KL");
-    property_set("ro.build.project.name", "ZC550KL");
-
-    /* Heap Set */
-    property_set("dalvik.vm.heapstartsize", "5m");
-    property_set("dalvik.vm.heapgrowthlimit", "128m");
-    property_set("dalvik.vm.heapsize", "256m");
-    property_set("dalvik.vm.heaptargetutilization", "0.75");
-    property_set("dalvik.vm.heapminfree", "512k");
-    property_set("dalvik.vm.heapmaxfree", "2m");
-
-    /* Display Flicker Fix */
-    property_set("ro.opengles.version", "196610");
-
-    }
-
-    else {
-        property_set("ro.product.model", "Zenfone"); // this should never happen.
+    if (is_target_8916()) {
+        property_set("ro.opengles.version", "196608");
+    } else {
+        property_set("ro.opengles.version", "196610");
     }
 }
