@@ -93,6 +93,9 @@ on post-fs
 
     start qcom-opengles
 
+on late-fs
+    start vendor.devstart_sh
+
 # msm specific files that need to be created on /data
 on post-fs-data
     mkdir /data/fdAlbum 0770 camera camera
@@ -852,6 +855,13 @@ on property:init.svc.surfaceflinger=stopped
 
 on property:init.svc.surfaceflinger=running
     start ppd
+
+service vendor.devstart_sh /vendor/bin/init.qcom.devstart.sh
+    class main
+    user root
+    group root system
+    oneshot
+    disabled
 
 service wcnss-service /vendor/bin/wcnss_service
     class late_start
