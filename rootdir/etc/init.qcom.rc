@@ -91,6 +91,9 @@ on post-fs
     # Allow writing to the kernel trace log.
     chmod 0222 /sys/kernel/debug/tracing/trace_marker
 
+on late-fs
+    start vendor.devstart_sh
+
 # msm specific files that need to be created on /data
 on post-fs-data
     # Tune FS
@@ -829,6 +832,13 @@ on property:init.svc.zygote=running
 
 on property:init.svc.zygote=restarting
     stop ppd
+
+service vendor.devstart_sh /vendor/bin/init.qcom.devstart.sh
+    class main
+    user root
+    group root system
+    oneshot
+    disabled
 
 service wcnss-service /vendor/bin/wcnss_service
     class late_start
