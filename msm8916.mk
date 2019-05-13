@@ -229,9 +229,7 @@ PRODUCT_PACKAGES += \
 
 # Power HAL
 PRODUCT_PACKAGES += \
-    android.hardware.power@1.0-impl \
-    android.hardware.power@1.0-service \
-    power.msm8916
+     android.hardware.power@1.0-service.8916
 
 # QMI
 PRODUCT_PACKAGES += \
