@@ -1,9 +1,6 @@
 on enable-low-power
     start qcom-power
 
-    rm /data/misc/perfd/default_values
-    rm /data/system/perfd/default_values
-    start perfd
 
     setprop sys.io.scheduler "bfq"
 

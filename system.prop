@@ -78,8 +78,6 @@ persist.media.treble_omx=false
 # Netmgrd
 persist.data.netmgrd.qos.enable=true
 
-# Perf
-ro.vendor.extension_library=libqti-perfd-client.so
 
 # Qualcomm
 persist.data.qmi.adb_logmask=0
