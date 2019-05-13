@@ -105,10 +105,6 @@ on post-fs-data
     mkdir /data/fdAlbum 0770 camera camera
     mkdir /data/misc/camera 0770 camera camera
 
-    # Create PERFD deamon related dirs
-    mkdir /data/misc/perfd 02755 root system
-    mkdir /data/system/perfd 02770 root system
-
     mkdir /persist/data/sfs 0700 system system
     mkdir /persist/data/tz 0700 system system
 
@@ -779,13 +775,6 @@ service qseecomd /vendor/bin/qseecomd
     group root
     writepid /dev/cpuset/system-background/tasks
 
-service perfd /vendor/bin/perfd
-    class late_start
-    user root
-    group root
-    socket perfd seqpacket 0666 root system
-    writepid /dev/cpuset/system-background/tasks
-    disabled
 
 #service thermal-engine /vendor/bin/thermal-engine
 #    class main
