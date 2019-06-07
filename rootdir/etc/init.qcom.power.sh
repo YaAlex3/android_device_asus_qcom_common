@@ -47,6 +47,10 @@ case "$soc_id" in
         echo "interactive" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
         echo 400000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq
 
+		# Limiter
+		write /sys/kernel/msm_limiter/scaling_governor 0:interactive 1:interactive 2:interactive 3:interactive
+		write /sys/kernel/msm_limiter/freq_control 1
+
         # Enable thermal core_control now
         echo 85 > /sys/module/msm_thermal/parameters/core_limit_temp_degC
         echo 75 > /sys/module/msm_thermal/parameters/limit_temp_degC
@@ -108,6 +112,10 @@ case "$soc_id" in
         echo "1 200000:10 400000:20 533000:33 800000:50 998400:70 1094400:75 1152000:80" > /sys/devices/system/cpu/cpu4/cpufreq/interactive/target_loads
         echo 40000 > /sys/devices/system/cpu/cpu4/cpufreq/interactive/min_sample_time
         echo 200000 > /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq
+
+		# Limiter
+		write /sys/kernel/msm_limiter/scaling_governor 0:interactive 1:interactive 2:interactive 3:interactive 4:interactive 5:interactive 6:interactive 7:interactive
+		write /sys/kernel/msm_limiter/freq_control 1
 
         # Enable thermal core_control now
         echo 85 > /sys/module/msm_thermal/parameters/core_limit_temp_degC
