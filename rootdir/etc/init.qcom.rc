@@ -93,14 +93,13 @@ on post-fs
 
     start qcom-opengles
 
+on late-fs
+    start vendor.devstart_sh
+
 # msm specific files that need to be created on /data
 on post-fs-data
     mkdir /data/fdAlbum 0770 camera camera
     mkdir /data/misc/camera 0770 camera camera
-
-    # Create PERFD deamon related dirs
-    mkdir /data/misc/perfd 02755 root system
-    mkdir /data/system/perfd 02770 root system
 
     mkdir /persist/data/sfs 0700 system system
     mkdir /persist/data/tz 0700 system system
@@ -814,11 +813,6 @@ service qseecomd /vendor/bin/qseecomd
     user root
     group root
 
-service perfd /vendor/bin/perfd
-    class main
-    user root
-    group root
-    disabled
 
 #service thermal-engine /vendor/bin/thermal-engine
 #    class main
@@ -852,6 +846,13 @@ on property:init.svc.surfaceflinger=stopped
 
 on property:init.svc.surfaceflinger=running
     start ppd
+
+service vendor.devstart_sh /vendor/bin/init.qcom.devstart.sh
+    class main
+    user root
+    group root system
+    oneshot
+    disabled
 
 service wcnss-service /vendor/bin/wcnss_service
     class late_start
