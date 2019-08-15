@@ -20,17 +20,10 @@ def FullOTA_PostValidate(info):
   info.script.AppendExtra('run_program("/sbin/e2fsck", "-fy", "/dev/block/bootdevice/by-name/system");');
 
 def FullOTA_InstallEnd(info):
-  info.script.AppendExtra('if getprop("ro.product.device") == "ASUS_Z010DD" then');
-  info.script.AppendExtra('ui_print("installing Z010DD kernel and firmware....");');
-  info.script.AppendExtra('package_extract_file("install/bin/etc", "/tmp/install/bin/etc");');
+  info.script.AppendExtra('package_extract_file("install/bin/cpuid.sh", "/tmp/install/bin/cpuid.sh");');
   info.script.Mount("/system")
-  info.script.AppendExtra('package_extract_file("/tmp/install/bin/etc", "/system");');
-  info.script.AppendExtra('symlink("/factory/wifi.nv", "/system/etc/firmware/wlan/prima/wifi.nv");');
-  info.script.AppendExtra('symlink("/data/misc/wifi/WCNSS_qcom_cfg.ini", "/system/etc/firmware/wlan/prima/WCNSS_qcom_cfg.ini");');
-  info.script.AppendExtra('set_metadata_recursive("/system", "uid", 0, "gid", 0, "dmode", 0755, "fmode", 0644, "capabilities", 0x0, "selabel", "u:object_r:system_file:s0");');
+  info.script.AppendExtra('run_program("sbin/sh", "/tmp/install/bin/cpuid.sh");');
   info.script.Unmount("/system")
-  info.script.AppendExtra('run_program("/sbin/dd", "if=/tmp/install/bin/boot.img", "of=/dev/block/bootdevice/by-name/boot");');
-  info.script.AppendExtra('endif;');
 
 def FullOTA_Assertions(info):
   AddApidAssertion(info, info.input_zip)
