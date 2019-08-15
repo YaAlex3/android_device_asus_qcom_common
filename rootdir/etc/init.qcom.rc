@@ -871,6 +871,9 @@ on property:sys.boot_completed=1
     write /proc/sys/vm/min_free_kbytes 2919
     write /proc/sys/vm/extra_free_kbytes 6075
 
+    # Enable Tap-To-Wake
+    write /sys/devices/soc.0/78b9000.i2c/i2c-5/5-0038/dclick_mode 1
+
 on property:vold.decrypt=trigger_restart_framework
     stop camera-provider-2-4
     start camera-provider-2-4
