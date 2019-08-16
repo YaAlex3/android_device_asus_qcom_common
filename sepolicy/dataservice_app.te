@@ -1,1 +1,3 @@
 allow dataservice_app runtime_event_log_tags_file:file { open read };
+allow dataservice_app qtitetherservice_service:service_manager {add};
+

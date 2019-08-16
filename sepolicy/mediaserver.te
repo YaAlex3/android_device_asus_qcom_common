@@ -8,6 +8,8 @@ allow mediaserver proc_asusevtlog:file w_file_perms;
 allow mediaserver system_file:file execmod;
 allow mediaserver system_server:unix_stream_socket rw_socket_perms;
 
+allow mediaserver sensorservice_service:service_manager {find};
+
 r_dir_file(mediaserver, fac_file)
 r_dir_file(mediaserver, persist_file)
 
