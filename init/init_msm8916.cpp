@@ -1,7 +1,6 @@
 /*
    Copyright (c) 2013, The Linux Foundation. All rights reserved.
    Copyright (C) 2016 The CyanogenMod Project.
-
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions are
    met:
@@ -14,7 +13,6 @@
     * Neither the name of The Linux Foundation nor the names of its
       contributors may be used to endorse or promote products derived
       from this software without specific prior written permission.
-
    THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESS OR IMPLIED
    WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT
@@ -28,12 +26,12 @@
    IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/sysinfo.h>
-#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/sysinfo.h>
 #define _REALLY_INCLUDE_SYS__SYSTEM_PROPERTIES_H_
 #include <sys/_system_properties.h>
 
@@ -44,68 +42,62 @@
 using android::base::GetProperty;
 using android::init::property_set;
 
-#define RAW_ID_PATH     "/sys/devices/soc0/raw_id"
-#define BUF_SIZE         64
-
-static char tmp[BUF_SIZE];
-static char buff_tmp[BUF_SIZE];
-
 char const *device;
 char const *family;
-char const *product;
 char const *heapstartsize;
 char const *heapgrowthlimit;
 char const *heapsize;
 char const *heapminfree;
 
-static int read_file2(const char *fname, char *data, int max_size)
+void check_device()
 {
-    int fd, rc;
-
-    if (max_size < 1)
-        return 0;
-
-    fd = open(fname, O_RDONLY);
-    if (fd < 0) {
-        ("failed to open '%s'\n", fname);
-        return 0;
+    if (is_target_8916()) {
+      device = "Z010D"; // 8916
+    } else {
+      device = "Z010DD"; // 8939
     }
-
-    rc = read(fd, data, max_size - 1);
-    if ((rc > 0) && (rc < max_size))
-        data[rc] = '\0';
-    else
-        data[0] = '\0';
-    close(fd);
-
-    return 1;
+    // from - phone-xhdpi-2048-dalvik-heap.mk
+    heapstartsize = "8m";
+    heapgrowthlimit = "192m";
+    heapsize = "512m";
+    heapminfree = "512k";
+    if (sys.totalram > 2048ull * 1024 * 1024) {
+      // from - phone-xxhdpi-3072-dalvik-heap.mk
+      heapstartsize = "8m";
+      heapgrowthlimit = "288m";
+      heapsize = "768m";
+      heapminfree = "512k";
+    } else if (sys.totalram > 1024ull * 1024 * 1024) {
+      // from - phone-xxhdpi-2048-dalvik-heap.mk
+      heapstartsize = "16m";
+      heapgrowthlimit = "192m";
+      heapsize = "512m";
+      heapminfree = "2m";
+    } else {
+      // from - phone-xhdpi-1024-dalvik-heap.mk
+      heapstartsize = "8m";
+      heapgrowthlimit = "96m";
+      heapsize = "256m";
+      heapminfree = "2m";
+    }
 }
 
-static void init_alarm_boot_properties()
+bool is_target_8916()
 {
-    int boot_reason;
-    FILE *fp;
+    int fd;
+    int soc_id = -1;
+    char buf[10] = { 0 };
 
-    fp = fopen("/proc/sys/kernel/boot_reason", "r");
-    fscanf(fp, "%d", &boot_reason);
-    fclose(fp);
+    if (access("/sys/devices/soc0/soc_id", F_OK) == 0)
+        fd = open("/sys/devices/soc0/soc_id", O_RDONLY);
+    else
+        fd = open("/sys/devices/system/soc/soc0/id", O_RDONLY);
 
-    /*
-     * Setup ro.alarm_boot value to true when it is RTC triggered boot up
-     * For existing PMIC chips, the following mapping applies
-     * for the value of boot_reason:
-     *
-     * 0 -> unknown
-     * 1 -> hard reset
-     * 2 -> sudden momentary power loss (SMPL)
-     * 3 -> real time clock (RTC)
-     * 4 -> DC charger inserted
-     * 5 -> USB charger inserted
-     * 6 -> PON1 pin toggled (for secondary PMICs)
-     * 7 -> CBLPWR_N pin toggled (for external power supply)
-     * 8 -> KPDPWR_N pin toggled (power key pressed)
-     */
-    property_set("ro.alarm_boot", boot_reason == 3 ? "true" : "false");
+    if (fd >= 0 && read(fd, buf, sizeof(buf) - 1) != -1)
+        soc_id = atoi(buf);
+
+    close(fd);
+    return soc_id == 206 || (soc_id >= 247 && soc_id <= 250);
 }
 
 void property_override(char const prop[], char const value[])
@@ -127,72 +119,24 @@ void property_override_dual(char const system_prop[], char const vendor_prop[], 
 
 void vendor_load_properties()
 {
+    char b_description[PROP_VALUE_MAX], b_fingerprint[PROP_VALUE_MAX];
+    char p_carrier[PROP_VALUE_MAX], p_device[PROP_VALUE_MAX];
 
-    char p_device[PROP_VALUE_MAX];
-    unsigned long raw_id = -1;
-    int rc;
+    std::string platform = GetProperty("ro.board.platform", "");
+    if (platform != ANDROID_TARGET)
+        return;
 
-    /* get raw ID */
-    rc = read_file2(RAW_ID_PATH, tmp, sizeof(tmp));
-    if (rc) {
-        raw_id = strtoul(tmp, NULL, 0);
-    }
+    check_device();
 
-    /* Z010D  */
-    if (raw_id==1797) {
+    property_override_dual("ro.build.fingerprint", "ro.vendor.build.fingerprint", "asus/WW_Phone/ASUS_Z010_2:6.0.1/MMB29P/13.8.26.80-20161230:user/release-keys");
+    property_override_dual("ro.product.device", "ro.vendor.product.device", device);
+    property_override_dual("ro.product.model", "ro.vendor.product.model", "ZC550KL");
 
-    /* Device Setting */
-    family = "WW_Phone";
-    device = "Z010D";
-
-    sprintf(p_device, "ASUS_%s", device);
-
-    property_override_dual("ro.product.device", "ro.vendor.product.device", p_device);
-    property_override_dual("ro.product.model", "ro.vendor.product.model", "ASUS_Z010D");
-    property_override_dual("ro.build.product", "ro.vendor.build.product", "ZC550KL");
-
-    /* Heap Set */
-    property_set("dalvik.vm.heapstartsize", "8m");
-    property_set("dalvik.vm.heapgrowthlimit", "192m");
-    property_set("dalvik.vm.heapsize", "512m");
-    property_set("dalvik.vm.heaptargetutilization", "0.75");
-    property_set("dalvik.vm.heapminfree", "2m");
-    property_set("dalvik.vm.heapmaxfree", "8m");
-
-    /* Display Flicker Fix */
-    property_set("debug.hwui.use_buffer_age", "false");
-    property_set("ro.opengles.version", "196608");
-
-    } else
-
-    /* Z010DD  */
-    if (raw_id==2315) {
-
-    /* Device Setting */
-    family = "WW_Phone";
-    device = "Z010_2";
-
-    sprintf(p_device, "ASUS_%s", device);
-
-    property_override_dual("ro.product.device", "ro.vendor.product.device", p_device);
-    property_override_dual("ro.product.model", "ro.vendor.product.model", "ASUS_Z010DD");
-    property_override_dual("ro.build.product", "ro.vendor.build.product", "ZC550KL");
-    property_set("ro.build.project.name", "ZC550KL");
-
-    /* Heap Set */
-    property_set("dalvik.vm.heapstartsize", "5m");
-    property_set("dalvik.vm.heapgrowthlimit", "128m");
-    property_set("dalvik.vm.heapsize", "256m");
-    property_set("dalvik.vm.heaptargetutilization", "0.75");
-    property_set("dalvik.vm.heapminfree", "512k");
-    property_set("dalvik.vm.heapmaxfree", "2m");
-
-    /* Display Flicker Fix */
-    property_set("ro.opengles.version", "196610");
-
-    }
-
-    else {
-        property_set("ro.product.model", "Zenfone"); // this should never happen.
+    if (is_target_8916()) {
+        property_set("debug.hwui.use_buffer_age", "false");
+        property_set("ro.opengles.version", "196608");
+    } else {
+        property_set("ro.opengles.version", "196610");
+        property_set("debug.hwui.use_buffer_age", "false");
     }
 }
