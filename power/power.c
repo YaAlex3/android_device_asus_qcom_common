@@ -30,6 +30,8 @@
 #define CPUFREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/"
 #define INTERACTIVE_PATH "/sys/devices/system/cpu/cpufreq/interactive/"
 
+#define NODE_MAX (64)
+
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 static int boostpulse_fd = -1;
 
@@ -210,13 +212,13 @@ static int get_feature(__attribute__((unused)) struct power_module *module,
     return -1;
 }
 
-void set_feature(struct power_module *module, feature_t feature, int state)
+void set_feature(__attribute__((unused)) struct power_module *module, feature_t feature, int state)
 {
     char tmp_str[NODE_MAX];
 #ifdef TAP_TO_WAKE_NODE
     if (feature == POWER_FEATURE_DOUBLE_TAP_TO_WAKE) {
         snprintf(tmp_str, NODE_MAX, "%d", state);
-        sysfs_write(TAP_TO_WAKE_NODE, tmp_str);
+        sysfs_write_str(TAP_TO_WAKE_NODE, tmp_str);
     }
 #endif
 }
@@ -235,6 +237,6 @@ struct power_module HAL_MODULE_INFO_SYM = {
     .init = power_init,
     .setInteractive = power_set_interactive,
     .powerHint = power_hint,
-    .getFeature = get_feature
+    .getFeature = get_feature,
     .setFeature = set_feature
 };

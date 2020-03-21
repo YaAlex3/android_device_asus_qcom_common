@@ -29,6 +29,8 @@
 #include <hardware/hardware.h>
 #include <hardware/power.h>
 
+#define NODE_MAX (64)
+
 #define LOW_POWER "/sys/module/cluster_plug/parameters/low_power_mode"
 #define BIG_PATH "/sys/devices/system/cpu/cpu0/cpufreq/interactive/"
 #define BOOST_FREQ "/sys/module/cpu_boost/parameters/input_boost_freq"
@@ -190,7 +192,7 @@ static int get_feature(__attribute__((unused)) struct power_module *module,
     return -1;
 }
 
-void set_feature(struct power_module *module, feature_t feature, int state)
+void set_feature(__attribute__((unused)) struct power_module *module, feature_t feature, int state)
 {
     char tmp_str[NODE_MAX];
 #ifdef TAP_TO_WAKE_NODE
@@ -215,6 +217,6 @@ struct power_module HAL_MODULE_INFO_SYM = {
     .init = power_init,
     .setInteractive = power_set_interactive,
     .powerHint = power_hint,
-    .getFeature = get_feature
+    .getFeature = get_feature,
     .setFeature = set_feature
 };
