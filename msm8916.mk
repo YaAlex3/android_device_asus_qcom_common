@@ -18,8 +18,7 @@
 include device/asus/msm8916-common/releasetools/unify.mk
 
 # Overlay
-DEVICE_PACKAGE_OVERLAYS += \
-    $(LOCAL_PATH)/overlay
+DEVICE_PACKAGE_OVERLAYS += $(LOCAL_PATH)/overlay/common
 
 # Permissions
 PRODUCT_COPY_FILES += \

@@ -34,7 +34,7 @@ fi
 setup_vendor "$DEVICE_COMMON" "$VENDOR" "$CM_ROOT" "true" "$1"
 
 # Copyright headers and guards
-write_headers "Z010D"
+write_headers "Z00L Z00T"
 
 # The standard common blobs
 write_makefiles "$MY_DIR"/proprietary-files.txt
