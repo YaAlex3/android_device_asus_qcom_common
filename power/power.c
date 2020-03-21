@@ -28,7 +28,7 @@
 #include "power_device.h"
 
 #define CPUFREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/"
-#define INTERACTIVE_PATH "/sys/devices/system/cpu/cpufreq/interactive/"
+#define INTERACTIVE_PATH "/sys/devices/system/cpu/cpu0/cpufreq/interactive/"
 #define THERMAL_PATH "/sys/module/msm_thermal/parameters/"
 
 #define NODE_MAX (64)
