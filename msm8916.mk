@@ -182,6 +182,7 @@ PRODUCT_PACKAGES += \
 # Power HAL
 PRODUCT_PACKAGES += \
     power.msm8916
+		power.msm8939
 
 # Ramdisk
 PRODUCT_PACKAGES += \
