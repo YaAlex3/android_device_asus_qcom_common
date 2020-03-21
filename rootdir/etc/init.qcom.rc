@@ -857,10 +857,6 @@ service qcom-opengles /system/bin/sh /system/etc/init.qcom.opengles.sh
     disabled
     oneshot
 
-service qcom-power /system/bin/sh /system/etc/init.qcom.power.sh
-    disabled
-    oneshot
-
 service qcom-factory /system/bin/sh /system/etc/init.qcom.factory.sh
     disabled
     seclabel u:r:qcom_factory:s0
