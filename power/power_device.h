@@ -30,7 +30,7 @@ static power_profile profiles[PROFILE_MAX] = {
         .scaling_max_freq = 998400,
         .scaling_min_freq = 400000,
         .scaling_min_freq_off = 200000,
-        .temp_core = 82
+        .temp_core = 82,
         .temp_freq = 78
     },
     [PROFILE_BALANCED] = {
@@ -48,7 +48,7 @@ static power_profile profiles[PROFILE_MAX] = {
         .scaling_max_freq = 1209600,
         .scaling_min_freq = 800000,
         .scaling_min_freq_off = 200000,
-        .temp_core = 82
+        .temp_core = 82,
         .temp_freq = 78
     },
     [PROFILE_HIGH_PERFORMANCE] = {
@@ -68,7 +68,7 @@ static power_profile profiles[PROFILE_MAX] = {
         .scaling_max_freq = 1209600,
         .scaling_min_freq = 800000,
         .scaling_min_freq_off = 200000,
-        .temp_core = 82
+        .temp_core = 82,
         .temp_freq = 78
     },
     [PROFILE_BIAS_POWER_SAVE] = {
@@ -86,7 +86,7 @@ static power_profile profiles[PROFILE_MAX] = {
         .scaling_max_freq = 1209600,
         .scaling_min_freq = 400000,
         .scaling_min_freq_off = 200000,
-        .temp_core = 82
+        .temp_core = 82,
         .temp_freq = 78
     },
 };

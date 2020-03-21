@@ -38,4 +38,6 @@ typedef struct governor_settings {
     int scaling_max_freq;
     int scaling_min_freq;
     int scaling_min_freq_off;
+    int temp_core;
+    int temp_freq;
 } power_profile;
