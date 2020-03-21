@@ -31,9 +31,6 @@
 
 #define NODE_MAX (64)
 
-#define CPUFREQ_PATH "/sys/devices/system/cpu/cpu4/cpufreq/"
-#define INTERACTIVE_PATH "/sys/devices/system/cpu/cpu4/cpufreq/interactive/"
-
 #define LOW_POWER "/sys/module/cluster_plug/parameters/low_power_mode"
 #define BIG_PATH "/sys/devices/system/cpu/cpu0/cpufreq/interactive/"
 #define BOOST_FREQ "/sys/module/cpu_boost/parameters/input_boost_freq"
@@ -143,22 +140,6 @@ static void set_power_profile(int profile)
             sysfs_write(BIG_PATH "target_loads", BIG_TARGET_LOADS_BLNC);
             sysfs_write(THERMAL_PATH "core_limit_temp_degC", CORE_TEMP_BLNC);
             sysfs_write(THERMAL_PATH "limit_temp_degC", FREQ_TEMP_BLNC);
-            sysfs_write(INTERACTIVE_PATH "go_hispeed_load",
-                            profiles[PROFILE_BALANCED].go_hispeed_load);
-            sysfs_write(INTERACTIVE_PATH "hispeed_freq",
-                            profiles[PROFILE_BALANCED].hispeed_freq);
-            sysfs_write(INTERACTIVE_PATH "min_sample_time",
-                            profiles[PROFILE_BALANCED].min_sample_time);
-            sysfs_write(INTERACTIVE_PATH "timer_rate",
-                            profiles[PROFILE_BALANCED].timer_rate);
-            sysfs_write(INTERACTIVE_PATH "above_hispeed_delay",
-                            profiles[PROFILE_BALANCED].above_hispeed_delay);
-            sysfs_write(INTERACTIVE_PATH "target_loads",
-                            profiles[PROFILE_BALANCED].target_loads);
-            sysfs_write(CPUFREQ_PATH "scaling_max_freq",
-                            profiles[PROFILE_BALANCED].scaling_max_freq);
-            sysfs_write(CPUFREQ_PATH "scaling_min_freq",
-                            profiles[PROFILE_BALANCED].scaling_min_freq);
         }
 
         sysfs_write(LOW_POWER, "0");
@@ -172,23 +153,6 @@ static void set_power_profile(int profile)
             sysfs_write(BIG_PATH "target_loads", BIG_TARGET_LOADS_FAST);
             sysfs_write(THERMAL_PATH "core_limit_temp_degC", CORE_TEMP_FAST);
             sysfs_write(THERMAL_PATH "limit_temp_degC", FREQ_TEMP_FAST);
-            sysfs_write(INTERACTIVE_PATH "go_hispeed_load",
-                            profiles[PROFILE_HIGH_PERFORMANCE].go_hispeed_load);
-            sysfs_write(INTERACTIVE_PATH "hispeed_freq",
-                            profiles[PROFILE_HIGH_PERFORMANCE].hispeed_freq);
-            sysfs_write(INTERACTIVE_PATH "min_sample_time",
-                            profiles[PROFILE_HIGH_PERFORMANCE].min_sample_time);
-            sysfs_write(INTERACTIVE_PATH "timer_rate",
-                            profiles[PROFILE_HIGH_PERFORMANCE].timer_rate);
-            sysfs_write(INTERACTIVE_PATH "above_hispeed_delay",
-                            profiles[PROFILE_HIGH_PERFORMANCE].above_hispeed_delay);
-            sysfs_write(INTERACTIVE_PATH "target_loads",
-                            profiles[PROFILE_HIGH_PERFORMANCE].target_loads);
-            sysfs_write(CPUFREQ_PATH "scaling_max_freq",
-                            profiles[PROFILE_HIGH_PERFORMANCE].scaling_max_freq);
-            sysfs_write(CPUFREQ_PATH "scaling_min_freq",
-                            profiles[PROFILE_HIGH_PERFORMANCE].scaling_min_freq);
-
         }
 
         sysfs_write(LOW_POWER, "0");
