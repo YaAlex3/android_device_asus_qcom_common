@@ -14,6 +14,9 @@
 # limitations under the License.
 #
 
+# Unify
+include device/asus/msm8916-common/releasetools/unify.mk
+
 # Overlay
 DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/overlay
